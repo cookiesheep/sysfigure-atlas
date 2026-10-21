@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SysFigure Atlas · 系统论文图画廊</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header id="topbar">
+  <div class="brand">
+    <span class="logo">▣</span>
+    <div>
+      <h1>SysFigure Atlas</h1>
+      <p class="sub">系统论文机制图 · 架构图 · 时序图参考库</p>
+    </div>
+  </div>
+  <div class="searchwrap">
+    <input id="search" type="search" placeholder="搜索：标题/作者/图注/笔记，或机制词（CP/DP/PP 及全称/中文）＋限定词（如「CP 分片」「实验结果」）…" autocomplete="off">
+  </div>
+  <div class="topbtns">
+    <a href="index.html?view=mech&mech=cp" class="ghost" style="text-decoration:none;display:inline-block;padding:6px 10px;border:1px solid var(--bd,#ccc);border-radius:6px" title="主站预设：机制表达区 + CP 筛选">▶ CP 机制预设</a>
+    <button id="btnDensity" class="ghost" title="切换 看图优先 / 看来源 密度">看图优先</button>
+    <button id="btnAdmin" class="ghost" title="管理视图：显示排除与私有序位">管理视图</button>
+    <button id="btnRefpackOpen" class="ghost" title="查看参考包（2–6 张）">🎒 参考包 (<span id="refpackCount">0</span>)</button>
+    <button id="btnExport" class="ghost" title="导出偏好 JSON">导出</button>
+    <button id="btnImport" class="ghost" title="导入偏好 JSON">导入</button>
+    <input type="file" id="importFile" accept=".json" hidden>
+  </div>
+</header>
+
+<p id="publicNotice" class="family-hint" hidden style="margin:12px 20px">公开参考画廊 · 图解由模型整理，请结合原文核对。图片版权归原作者与出版者。收藏与笔记仅保存于当前浏览器，可用右上角“导出 / 导入”迁移。</p>
+
+<section id="figureFamilies" aria-label="按图片内容选择大类">
+  <div class="family-main">
+    <button class="family-card" data-fig-type="structural" aria-pressed="false">
+      <span class="family-heading">机制与示意图 <span class="family-count" data-family-count="structural">—</span></span>
+      <span class="family-description">架构 · 流程 · 并行组织 · 调度示意</span>
+    </button>
+    <button class="family-card" data-fig-type="quantitative" aria-pressed="false">
+      <span class="family-heading">数据与结果图 <span class="family-count" data-family-count="quantitative">—</span></span>
+      <span class="family-description">曲线 · 柱状 · 散点 · 热力图等定量表达</span>
+    </button>
+  </div>
+  <div class="family-secondary">
+    <button class="ghost" data-fig-type="mixed" aria-pressed="false">混合图 <span data-family-count="mixed">—</span></button>
+    <button class="ghost" data-fig-type="other" aria-pressed="false">其他材料 <span data-family-count="other">—</span></button>
+    <button class="ghost" data-fig-type="" aria-pressed="false">全部可用图 <span data-family-count="">—</span></button>
+    <span class="family-hint">按表达内容分类，混合图单列；数量为全库可用图，会议与搜索条件继续叠加。</span>
+  </div>
+</section>
+
+<div id="interpBar" style="display:flex;gap:6px;margin:6px 16px;min-height:18px;flex-wrap:wrap"></div>
+
+<details class="g4-note" id="g4Note">
+  <summary>内容整理状态与浏览说明 <span id="g4NoteCounts">（加载中…）</span></summary>
+  <b>浏览层说明：</b>「可用参考」=已通过独立目检的可浏览参考；「机制表达/实验与局部画法」按证据与图类分级；
+  「待整理」=未目检/待修/不相关/生产已拒/当前阻断；「旧策展·历史」=原 56 张模型精选（历史口径）。
+  图类与机制标签以实际回件为准（推导值标注来源）；详细图解由视觉批次逐图填写，工程不代填。
+</details>
+
+<div id="viewbar">
+  <button class="viewtab on" data-view="usable" title="经模型目检并整理图解的可浏览参考（多批次累积；非人工独立审核）">可用参考</button>
+  <button class="viewtab" data-view="mech" title="图内直接描绘 CP/DP/PP 等机制的可用参考">机制表达</button>
+  <button class="viewtab" data-view="exp" title="实验结果或局部画法的可用参考">实验与局部画法</button>
+  <button class="viewtab" data-view="pending" title="未目检/待修/不相关/生产已拒——只可浏览">待整理</button>
+  <button class="viewtab" data-view="all" title="全部公开记录（含待审，不等于已整理）">全部候选</button>
+  <button class="viewtab" data-view="starred" title="仅我的收藏">我的收藏</button>
+  <button class="viewtab" data-view="curated" id="viewCurated" title="旧模型精选 56 张（历史筛选，非当前质量口径）">旧策展·历史</button>
+</div>
+
+<div id="filterbar">
+  <select id="fVenue"><option value="">全部会议</option></select>
+  <select id="fYear"><option value="">全部年份</option></select>
+  <select id="fTrack"><option value="">全部轨道</option></select>
+  <select id="fPurpose"><option value="">全部图型</option></select>
+  <select id="fPattern"><option value="">全部视觉模式</option></select>
+  <select id="fTag"><option value="">全部视觉标签</option></select>
+  <select id="fStatus"><option value="">全部状态</option></select>
+  <select id="fFigType" hidden aria-label="当前图片大类"><option value="">全部图类</option><option value="structural">机制与示意图</option><option value="quantitative">数据与结果图</option><option value="mixed">混合图</option><option value="other">其他材料</option></select>
+  <select id="fInd" title="独立视觉审核状态（与裁图/策展审核独立）"><option value="">独立审核:全部</option><option value="missing">未审</option><option value="accepted">已通过</option><option value="rejected">已拒绝</option><option value="expired">已过期</option><option value="invalid">记录无效</option></select>
+  <label class="chip"><input type="checkbox" id="fStarred"><span>★ 仅收藏</span></label>
+  <span class="spacer"></span>
+  <select id="fSort">
+    <option value="default">默认排序</option>
+    <option value="venue_year">会议+年份</option>
+    <option value="starred">收藏优先</option>
+    <option value="curated_science">CP相关度优先</option>
+  </select>
+  <span id="resultCount" class="count"></span>
+</div>
+
+<div class="chipbar" id="mechBar"><span class="dim">机制（OR）</span></div>
+<div class="chipbar" id="topicBar"><span class="dim">主题（OR）</span></div>
+<div class="chipbar" id="purposeBar"><span class="dim">用途（OR）</span></div>
+<div class="chipbar" id="structureBar"><span class="dim">结构（OR）</span></div>
+<div class="rulehint" style="font-size:12px;color:#888;margin:2px 16px 8px">机制 ∧ 用途 ∧ 结构 ∧ 会议/年份/图类 跨行同时选择须同时满足；搜索机制词自动归一（词边界，CP≠CPU/checkpoint），剩余限定词映射为筛选或作自由词文本匹配，不静默丢弃。</div>
+
+<main id="grid" class="gallery imagefirst"></main>
+<div style="text-align:center;margin:12px"><button id="loadMore" class="ghost" hidden>加载更多</button></div>
+<div id="empty" class="empty" hidden>没有匹配的图。当前条件下确实无资料（不假填）——可放宽筛选或看「待整理」。</div>
+
+<!-- 对比托盘 -->
+<footer id="compareTray" hidden>
+  <div id="compareItems"></div>
+  <div class="traybtns">
+    <button id="btnCompare" class="primary">并排对比 (<span id="compareCount">0</span>/4)</button>
+    <button id="btnCompareClear" class="ghost">清空</button>
+  </div>
+</footer>
+
+<!-- 灯箱 -->
+<div id="lightbox" class="overlay" hidden>
+  <div class="lb-top">
+    <button id="lbClose" class="iconbtn" title="关闭 (Esc)">✕</button>
+    <button id="lbBack" class="ghost" title="返回同类入口的原图片" hidden>↩ 返回原图</button>
+    <div class="lb-title" id="lbTitle"></div>
+    <div class="lb-zoombtns">
+      <button id="lbZoomOut" class="iconbtn" title="缩小 (-)">－</button>
+      <button id="lbZoomReset" class="iconbtn" title="原始大小 (0)">1:1</button>
+      <button id="lbZoomIn" class="iconbtn" title="放大 (+)">＋</button>
+    </div>
+  </div>
+  <div class="lb-body">
+    <button id="lbPrev" class="navbtn" title="上一张 (←)">‹</button>
+    <div id="lbStage"><img id="lbImg" alt=""></div>
+    <button id="lbNext" class="navbtn" title="下一张 (→)">›</button>
+    <aside id="lbPanel">
+      <div class="lb-actions">
+        <button id="lbStar" class="bigbtn">☆ 收藏</button>
+        <button id="lbLike" class="bigbtn" title="喜欢">👍</button>
+        <button id="lbDislike" class="bigbtn" title="不喜欢">👎</button>
+        <button id="lbCompareAdd" class="bigbtn">⇔ 加入对比</button>
+        <button id="lbRefAdd" class="bigbtn">🎒 参考包</button>
+      </div>
+      <div id="lbExplain" class="lb-explain"></div>
+      <div id="lbSimilar" class="lb-similar"></div>
+      <div id="lbMeta" class="lb-meta"></div>
+      <details id="lbPageBox" class="lb-page"><summary>在原 PDF 页中查看（含 bbox）</summary>
+        <div id="lbPageHolder" class="page-holder"><img id="lbPageImg" alt="整页预览"><div id="lbBbox"></div></div>
+      </details>
+      <label class="notes-label">我的笔记（自动保存本机）<textarea id="lbNotes" rows="3"></textarea></label>
+      <div class="collections-row"><input id="lbColl" type="text" placeholder="收藏夹，逗号分隔，如: cp,f1-schedule"><button id="lbCollSave" class="ghost">保存</button></div>
+    </aside>
+  </div>
+</div>
+
+<!-- 对比视图 -->
+<div id="compareView" class="overlay" hidden>
+  <div class="lb-top">
+    <button id="cvClose" class="iconbtn" title="返回 (Esc)">✕</button>
+    <div class="lb-title">并排对比（点击图片可放大）</div>
+  </div>
+  <div id="cvCols"></div>
+</div>
+
+<!-- 参考包 -->
+<div id="refpack" class="overlay" hidden>
+  <div class="modal">
+    <div class="modal-head"><h2>参考包 · 选中 <span id="rpCount">0</span> 张（2–6）</h2>
+      <button id="rpClose" class="iconbtn">✕</button></div>
+    <div id="rpList"></div>
+    <div class="modal-foot">
+      <button id="rpManifest" class="primary">下载 manifest JSON</button>
+      <button id="rpCopy" class="ghost">复制图片路径清单</button>
+      <span class="hint">manifest 含出处、图号、借鉴点与禁止照搬说明，可直接粘贴给网页版生图工具。</span>
+    </div>
+  </div>
+</div>
+
+<div id="toast" hidden></div>
+<script src="refpack_guard.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
